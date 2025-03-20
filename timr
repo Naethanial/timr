@@ -1,0 +1,55 @@
+#!/bin/bash
+
+Check if figlet is installed
+if ! command -v figlet &> /dev/null; then
+    echo "Please install it using 'sudo pacman -S figlet'."
+    exit 1
+fi
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $(basename $0) <seconds>"
+    echo "Example: $(basename $0) 300 (for a 5-minute countdown)"
+    exit 1
+fi
+
+if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+    echo "Error: Please provide a positive number for seconds."
+    exit 1
+fi
+
+total_seconds=$1
+min=$((total_seconds / 60))
+sec=$((total_seconds % 60))
+
+cleanup() {
+    echo -e "\nTimer stopped."
+    exit 0
+}
+
+trap cleanup SIGINT
+
+clear
+
+while sleep 1; do
+    printf "\033c"
+    
+    printf "%02d:%02d\n" $min $sec | figlet -f big
+    
+    if [ $min -eq 0 ] && [ $sec -eq 0 ]; then
+        break
+    fi
+    
+    # Decrement the time
+    if [ $sec -eq 0 ]; then
+        sec=59
+        min=$((min - 1))
+    else
+        sec=$((sec - 1))
+    fi
+done
+
+printf "\033c"
+echo "TIME'S UP!" | figlet -f big
+echo -e "\nPress Ctrl+C to exit."
+
+while true; do sleep 1; done
